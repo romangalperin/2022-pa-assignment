@@ -5,26 +5,87 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls()) # clear memory, step 1
+gc() # clear memory, step 2
 ```
 
-## GitHub Documents
+## Setting up data and environment
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+We first need to do a few things before we can manipulate the data. 
 
-## Including Code
+```{r data}
+# set path for R to find our data
+data_path <- "~/Dropbox/McGill/teaching/2021-2022/2022_summer/ORGB672/data/"
+setwd(data_path)
 
-You can include R code in the document as follows:
+# load the necessary packages ("extensions")
+library(tidyverse)
+library(lubridate) # to work with dates
+library(skimr) # for summaries of data
+library(arrow) # to be able to load data in the .parquet format
 
-```{r cars}
-summary(cars)
+# read application data
+app_data_sample <- read_parquet(paste0(data_path,"app_data_sample.parquet"))
 ```
 
-## Including Plots
+## Let's find the first and the last observed date for each examiner
 
-You can also embed plots, for example:
+We'll first get examiner IDs and application dates in a separate dataframe (table), for ease of manipulation. We'll keep examiner ID (the field `examiner_id`), and earliest and latest dates for each application (`filing_date` and `appl_status_date` respectively).
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+examiner_dates <- app_data_sample %>% 
+  select(examiner_id, filing_date, appl_status_date) 
+
+examiner_dates
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The dates look inconsistent in terms of formatting. Let's make them consistent. We'll create new variables `start_date` and `end_date`.
+
+```{r}
+examiner_dates <- examiner_dates %>% 
+  mutate(start_date = ymd(filing_date), end_date = as_date(dmy_hms(appl_status_date)))
+```
+
+Let's now identify the earliest and the latest date for each examiner and calculate the difference in days, which is their tenure in the organization.
+
+```{r}
+examiner_dates <- examiner_dates %>% 
+  group_by(examiner_id) %>% 
+  summarise(
+    earliest_date = min(start_date, na.rm = TRUE), 
+    latest_date = max(end_date, na.rm = TRUE),
+    tenure = interval(earliest_date, latest_date) %/% days(1)
+    )
+
+examiner_dates
+
+skim(examiner_dates)
+```
+
+## Find examiner gender
+##### >> add examiner gender -----
+# Using a modified example from https://cran.r-project.org/web/packages/gender/vignettes/predicting-gender.html
+library(gender)
+#install_genderdata_package() # only run the first time
+examiner_gender <- examiner_gs %>% 
+  mutate(
+    name = examiner_name,
+    ff_name = str_extract(examiner_name,"(?<=,\\s)\\w+"), # extract first first name
+  ) %>% 
+  distinct(ff_name) %>% 
+  do(results = gender(.$ff_name, method = "ssa")) %>% 
+  unnest(cols = c(results), keep_empty = TRUE) %>% 
+  select(
+    ff_name = name,
+    gender,
+    proportion_female
+  )
+# joining gender back to the dataset
+examiner_gs <- examiner_gs %>% 
+  mutate(
+    ff_name = str_extract(examiner_name,"(?<=,\\s)\\w+"), # extract first first name
+  ) %>% 
+  left_join(examiner_gender, by = "ff_name")
+# cleaning up
+rm(examiner_gender)
+gc()
