@@ -156,8 +156,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)
-    ## Ncells  4530966 242.0    7557948 403.7         NA  4958998 264.9
-    ## Vcells 49525538 377.9   95441804 728.2      16384 79841212 609.2
+    ## Ncells  4531094 242.0    7553654 403.5         NA  4959126 264.9
+    ## Vcells 49526289 377.9   95442555 728.2      16384 79841838 609.2
 
 ### Guess the examiner’s race
 
@@ -280,8 +280,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)
-    ## Ncells  4944410 264.1    7557948 403.7         NA  7557948 403.7
-    ## Vcells 53318655 406.8   95441804 728.2      16384 94496954 721.0
+    ## Ncells  4944538 264.1    7553654 403.5         NA  7553654 403.5
+    ## Vcells 53319406 406.8   95442555 728.2      16384 94498493 721.0
 
 ### Examiner’s tenure
 
@@ -331,7 +331,8 @@ consistent. We’ll create new variables `start_date` and `end_date`.
 
 ``` r
 examiner_dates <- examiner_dates %>% 
-  mutate(start_date = ymd(filing_date), end_date = as_date(dmy_hms(appl_status_date)))
+  mutate(start_date = ymd(filing_date), end_date = as_date(dmy_hms(appl_status_date))) %>% 
+  filter(year(end_date)<2018)
 ```
 
 Let’s now identify the earliest and the latest date for each examiner
@@ -376,8 +377,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
-    ## Ncells  4958736 264.9   13560928  724.3         NA  13560928  724.3
-    ## Vcells 65697806 501.3  137612196 1049.9      16384 137531315 1049.3
+    ## Ncells  4958895 264.9   13550972  723.7         NA  13550972  723.7
+    ## Vcells 65698646 501.3  165215934 1260.5      16384 137532184 1049.3
 
 ## 3. Descriptive statistics
 
@@ -452,6 +453,95 @@ Data summary
 
 **Variable type: numeric**
 
-| skim_variable | n_missing | complete_rate |     mean |       sd |  p0 |  p25 |  p50 |  p75 |    p100 | hist  |
-|:--------------|----------:|--------------:|---------:|---------:|----:|-----:|-----:|-----:|--------:|:------|
-| tenure_days   |         0 |             1 | 10282.35 | 87390.08 |  27 | 4963 | 6094 | 6336 | 2727903 | ▇▁▁▁▁ |
+| skim_variable | n_missing | complete_rate |    mean |      sd |  p0 |  p25 |  p50 |  p75 | p100 | hist  |
+|:--------------|----------:|--------------:|--------:|--------:|----:|-----:|-----:|-----:|-----:|:------|
+| tenure_days   |         0 |             1 | 5531.37 | 1100.91 |  27 | 4962 | 6090 | 6336 | 6518 | ▁▁▁▂▇ |
+
+### Plot tenure by gender and TCs
+
+We will use `ggplot` package to plot our distributions. It’s the most
+widely used and the most flexible plotting package. Watch a tutorial
+here: <https://youtu.be/h29g21z0a68>.
+
+First, we need to keep one observation per person, to avoid the same
+person contributing to the plot multiple times because they appear in
+the data for multiple applications.
+
+``` r
+person_level_data <- app_data_sample %>% 
+  group_by(examiner_id) %>% 
+  summarise(
+    art_unit = min(examiner_art_unit, na.rm = TRUE),
+    gender = min(gender, na.rm = TRUE),
+    start_year = min(year(earliest_date), na.rm = TRUE),
+    latest_date = max(latest_date, na.rm = TRUE),
+    tenure_days = max(tenure_days, na.rm = TRUE)
+  ) %>% 
+  mutate(
+    tc = floor(art_unit/100)*100,
+    work_group = floor(art_unit/10)*10
+  ) %>% 
+  filter(!is.na(gender)) # dropping all records where we don't know the gender
+
+person_level_data
+```
+
+    ## # A tibble: 4,849 × 8
+    ##    examiner_id art_unit gender start_year latest_date tenure_days    tc
+    ##          <dbl>    <dbl> <chr>       <dbl> <date>            <dbl> <dbl>
+    ##  1       59012     1716 male         2004 2015-07-24         4013  1700
+    ##  2       59025     2465 male         2009 2017-05-18         2761  2400
+    ##  3       59040     1724 female       2007 2017-05-23         3542  1700
+    ##  4       59052     2138 male         2001 2007-02-28         2017  2100
+    ##  5       59055     2165 male         2004 2007-12-26         1149  2100
+    ##  6       59056     2124 male         2000 2017-05-22         6268  2100
+    ##  7       59081     2489 male         2011 2017-05-19         2220  2400
+    ##  8       59086     2487 female       2010 2017-05-18         2527  2400
+    ##  9       59096     1612 male         2000 2015-11-20         5800  1600
+    ## 10       59117     2439 male         2009 2011-09-02          925  2400
+    ## # … with 4,839 more rows, and 1 more variable: work_group <dbl>
+
+We start by plotting boxplots for tenure. A simple boxplot for the
+entire sample looks like this
+
+``` r
+ggplot(person_level_data) +
+  geom_boxplot(aes(x = tenure_days, color = gender))
+```
+
+![](exercise2_files/figure-gfm/plot-gender-2-1.png)<!-- -->
+
+Now let’s plot gender composition by TC. Note that I am conversing the
+numerical variable `tc` into a factor variable, so that ggplot
+understands it’s just a label for the Technology Center, not an actual
+measure of something and so intelligently adjusts the x-axis.
+
+``` r
+ggplot(person_level_data) +
+  geom_bar(
+    aes(x=as_factor(tc), fill = gender), 
+    position = position_stack()
+    ) +
+  xlab("Technology Center")
+```
+
+![](exercise2_files/figure-gfm/plot-gender-3-1.png)<!-- -->
+
+### Tiling multiple plots
+
+Let’s plot gender composition by work group for each TC. See this page
+for documentation:
+<https://ggplot2.tidyverse.org/reference/facet_wrap.html>
+
+``` r
+ggplot(person_level_data) +
+  geom_bar(
+    aes(x=as_factor(work_group), fill = gender), 
+    position = position_stack()
+    ) +
+  xlab("Work group") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) + #rotate labels
+  facet_wrap(vars(tc), scales = "free")
+```
+
+![](exercise2_files/figure-gfm/plot-gender-4-1.png)<!-- -->

@@ -162,7 +162,8 @@ The dates look inconsistent in terms of formatting. Let's make them consistent. 
 
 ```{r tenure-2}
 examiner_dates <- examiner_dates %>% 
-  mutate(start_date = ymd(filing_date), end_date = as_date(dmy_hms(appl_status_date)))
+  mutate(start_date = ymd(filing_date), end_date = as_date(dmy_hms(appl_status_date))) %>% 
+  filter(year(end_date)<2018)
 ```
 
 Let's now identify the earliest and the latest date for each examiner and calculate the difference in days, which is their tenure in the organization.
@@ -225,3 +226,63 @@ subset_app_data %>%
 
 ```
 
+### Plot tenure by gender and TCs
+
+We will use `ggplot` package to plot our distributions. It's the most widely used and the most flexible plotting package. Watch a tutorial here: [https://youtu.be/h29g21z0a68](https://youtu.be/h29g21z0a68). 
+
+First, we need to keep one observation per person, to avoid the same person contributing to the plot multiple times because they appear in the data for multiple applications.
+
+```{r plot-gender-1, warning=FALSE}
+person_level_data <- app_data_sample %>% 
+  group_by(examiner_id) %>% 
+  summarise(
+    art_unit = min(examiner_art_unit, na.rm = TRUE),
+    gender = min(gender, na.rm = TRUE),
+    start_year = min(year(earliest_date), na.rm = TRUE),
+    latest_date = max(latest_date, na.rm = TRUE),
+    tenure_days = max(tenure_days, na.rm = TRUE)
+  ) %>% 
+  mutate(
+    tc = floor(art_unit/100)*100,
+    work_group = floor(art_unit/10)*10
+  ) %>% 
+  filter(!is.na(gender)) # dropping all records where we don't know the gender
+
+person_level_data
+```
+
+We start by plotting boxplots for tenure. A simple boxplot for the entire sample looks like this 
+
+```{r plot-gender-2}
+
+ggplot(person_level_data) +
+  geom_boxplot(aes(x = tenure_days, color = gender))
+
+```
+
+Now let's plot gender composition by TC. Note that I am conversing the numerical variable `tc` into a factor variable, so that ggplot understands it's just a label for the Technology Center, not an actual measure of something and so intelligently adjusts the x-axis.
+
+```{r plot-gender-3}
+
+ggplot(person_level_data) +
+  geom_bar(
+    aes(x=as_factor(tc), fill = gender), 
+    position = position_stack()
+    ) +
+  xlab("Technology Center")
+```
+
+### Tiling multiple plots
+
+Let's plot gender composition by work group for each TC. See this page for documentation: [https://ggplot2.tidyverse.org/reference/facet_wrap.html](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
+
+```{r plot-gender-4}
+ggplot(person_level_data) +
+  geom_bar(
+    aes(x=as_factor(work_group), fill = gender), 
+    position = position_stack()
+    ) +
+  xlab("Work group") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1)) + #rotate labels
+  facet_wrap(vars(tc), scales = "free")
+```
