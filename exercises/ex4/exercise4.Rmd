@@ -7,16 +7,80 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(tidygraph)
+library(ggraph)
 ```
 
 ## Illustration of friendship network
 
 We'll use `tidygraph` package to create and plot the friendship network from the slides. The nodes are Abby (A), Becca (B), Chloe (C) and Deb (D). Abby is only friends with Becca; Becca is friends with Abby, Chloe and Deb; and Chloe and Deb and friends with Becca and each other (but not Abby).
 
-We'll be relying on this tutorial: [http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html](http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html)
+We'll be relying on these tutorials: 
+
++ [http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html](http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html)
++ [https://www.data-imaginist.com/2017/introducing-tidygraph/](https://www.data-imaginist.com/2017/introducing-tidygraph/)
++ [https://www.data-imaginist.com/2018/tidygraph-1-1-a-tidy-hope/](https://www.data-imaginist.com/2018/tidygraph-1-1-a-tidy-hope/)
+
+First, we define the network by manually entering all the nodes and the connections between them. We'll define `nodes` table that has two columns: `id` and `name`. We will then define the connections among them as an edgelist, where each element in column `from` corresponds to a friend on one end of the relationship and each element in column `to` corresponds to the person on the other end of this friendship tie.
 
 ```{r define-network}
+# define nodes
+node_names <- tibble(
+  id   = c(1,2,3,4),
+  name = c("Abby","Becca","Chloe","Deb")
+)
+node_names
+
+# define connections (have to correspond to ties 1-2, 2-3, 2-4, 3-4)
+# for each element in `from` there is a corresponding element in `to`
+edge_list <- tibble(
+  from = c(1,2,2,3),
+  to   = c(2,3,4,4)
+)
+edge_list
+```
+
+We can now combine these tables into a "graph" object that holds all of our network data.
+
+```{r define-graph}
+# combine this information into a network graph object
+friendship_graph <- tbl_graph(nodes = node_names, edges = edge_list, directed = FALSE)
+friendship_graph
+```
+
+We can now plot this network using `ggraph` package.
+
+```{r plot-graph}
+friendship_graph %>% 
+    ggraph(layout = 'kk') + 
+    geom_edge_link() + 
+    geom_node_point(size = 8, colour = 'gray') +
+    geom_node_text(aes(label = name), colour = 'steelblue', vjust = 0.4) + 
+    ggtitle('Friendship network') + 
+    theme_graph()
+```
 
 
+We can use many of the functions in package `tidy_graph` to calculate things we want to know about this network. For example, we may want to know the centrality of each node in the network.
+
+```{r}
+friendship_graph <- friendship_graph %>% 
+  activate(nodes) %>% # we need to state we'll be adding to nodes, not edges
+  mutate(d_centrality = centrality_degree()) %>%  # adding measure of degree centrality
+  mutate(b_centrality = centrality_betweenness()) # adding betweenness centrality
+
+friendship_graph
+```
+
+Now let's plot this with degree centrality determining the size of the nodes and betweenness determining its color.
+
+```{r plot-centrality}
+friendship_graph %>% 
+  ggraph(layout = 'kk') + 
+  geom_edge_link() + 
+  geom_node_point(aes(size = d_centrality, colour = b_centrality)) + 
+  scale_color_continuous(guide = 'legend') +
+  geom_node_text(aes(label = name), colour = 'red', vjust = 1.6) + 
+  ggtitle('Friendship network') + 
+  theme_graph()
 ```
 
