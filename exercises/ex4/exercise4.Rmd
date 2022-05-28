@@ -1,0 +1,22 @@
+---
+title: "Exercise 4 quick start"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidygraph)
+```
+
+## Illustration of friendship network
+
+We'll use `tidygraph` package to create and plot the friendship network from the slides. The nodes are Abby (A), Becca (B), Chloe (C) and Deb (D). Abby is only friends with Becca; Becca is friends with Abby, Chloe and Deb; and Chloe and Deb and friends with Becca and each other (but not Abby).
+
+We'll be relying on this tutorial: [http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html](http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html)
+
+```{r define-network}
+
+
+```
+
