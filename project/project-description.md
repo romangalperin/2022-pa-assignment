@@ -58,14 +58,13 @@ solving the examination time problem.
 ### Inequities among examiners
 
 The agency suspects—and has some indirect evidence—that examiners’ work,
-mobility across units, promotion across pay grades and attrition differ
-systematically by demographic characteristics. Of special concern are
-patterns related to examiner’s gender and race/ethnicity, not only
-because such differences may pose obvious ethical challenges, but also
-because they increase the risk of legal liability for the agency. The
-USPTO would like to understand what, if any, patterns in examiners’
-work, mobility, promotion and attrition vary systematically by race
-and/or gender.
+promotion across pay grades and attrition differ systematically by
+demographic characteristics. Of special concern are patterns related to
+examiner’s gender and race/ethnicity, not only because such differences
+may pose obvious ethical challenges, but also because they increase the
+risk of legal liability for the agency. The USPTO would like to
+understand what, if any, patterns in examiners’ work, promotion and
+attrition vary systematically by race and/or gender.
 
 ## Team project
 
@@ -77,7 +76,7 @@ following questions:
 
 -   What are the organizational and social factors associated with the
     length of patent application prosecution?
--   What influences mobility, promotion and exit of patent examiners?
+-   What influences promotion and exit of patent examiners?
 -   What is the role of gender, race and ethnicity in the processes
     described in the questions above?
 
@@ -141,17 +140,6 @@ app_data_sample %>%
 
 Additional data on patent examiners come from FOIA requests made with
 the agency by various researchers. The data components are:
-
--   **examiner_aus.csv** contains data on Art Units associated with each
-    examiner at each point in time
-
-``` r
-examiner_aus %>% tbl_vars()
-```
-
-    ## <dplyr:::vars>
-    ## [1] "old_pid"           "year"              "month"            
-    ## [4] "examiner_art_unit"
 
 -   **examiner_gs.csv** contains data on examiner GS pay grade changes
 

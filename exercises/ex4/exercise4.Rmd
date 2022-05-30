@@ -14,11 +14,11 @@ library(ggraph)
 
 We'll use `tidygraph` package to create and plot the friendship network from the slides. The nodes are Abby (A), Becca (B), Chloe (C) and Deb (D). Abby is only friends with Becca; Becca is friends with Abby, Chloe and Deb; and Chloe and Deb and friends with Becca and each other (but not Abby).
 
-We'll be relying on these tutorials: 
+We'll be relying on these tutorials:
 
-+ [http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html](http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html)
-+ [https://www.data-imaginist.com/2017/introducing-tidygraph/](https://www.data-imaginist.com/2017/introducing-tidygraph/)
-+ [https://www.data-imaginist.com/2018/tidygraph-1-1-a-tidy-hope/](https://www.data-imaginist.com/2018/tidygraph-1-1-a-tidy-hope/)
+-   <http://users.dimi.uniud.it/~massimo.franceschet/ns/syllabus/make/tidygraph/tidygraph.html>
+-   <https://www.data-imaginist.com/2017/introducing-tidygraph/>
+-   <https://www.data-imaginist.com/2018/tidygraph-1-1-a-tidy-hope/>
 
 First, we define the network by manually entering all the nodes and the connections between them. We'll define `nodes` table that has two columns: `id` and `name`. We will then define the connections among them as an edgelist, where each element in column `from` corresponds to a friend on one end of the relationship and each element in column `to` corresponds to the person on the other end of this friendship tie.
 
@@ -59,7 +59,6 @@ friendship_graph %>%
     theme_graph()
 ```
 
-
 We can use many of the functions in package `tidy_graph` to calculate things we want to know about this network. For example, we may want to know the centrality of each node in the network.
 
 ```{r}
@@ -83,4 +82,3 @@ friendship_graph %>%
   ggtitle('Friendship network') + 
   theme_graph()
 ```
-

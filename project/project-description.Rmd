@@ -17,7 +17,6 @@ set.seed(10101)
 ##### paths -----
 data_path = "~/Dropbox/McGill/teaching/2021-2022/2022_summer/ORGB672/data/"
 app_data_sample <- read_parquet(paste0(data_path,"app_data_sample.parquet"))
-examiner_aus <- read_csv(paste0(data_path,"examiner_aus.csv"))
 examiner_gs <- read_csv(paste0(data_path,"examiner_gs.csv"))
 examiner_ids <- read_csv(paste0(data_path,"examiner_ids.csv"))
 ```
@@ -45,13 +44,13 @@ Since innovation is dynamic and because patent rights can be highly valuable for
 One of the factor contributing to the average examination time is the availability of qualified employees---patent examiners---who can make decision on the applications. Examiners take significant time to recruit and train, and yet many move across departmental units and some leave the agency at different points in their careers. Understanding the reasons for examiner mobility and attrition is an important part of solving the examination time problem.
 
 ### Inequities among examiners
-The agency suspects---and has some indirect evidence---that examiners' work, mobility across units, promotion across pay grades and attrition differ systematically by demographic characteristics. Of special concern are patterns related to examiner's gender and race/ethnicity, not only because such differences may pose obvious ethical challenges, but also because they increase the risk of legal liability for the agency. The USPTO would like to understand what, if any, patterns in examiners' work, mobility, promotion and attrition vary systematically by race and/or gender.
+The agency suspects---and has some indirect evidence---that examiners' work, promotion across pay grades and attrition differ systematically by demographic characteristics. Of special concern are patterns related to examiner's gender and race/ethnicity, not only because such differences may pose obvious ethical challenges, but also because they increase the risk of legal liability for the agency. The USPTO would like to understand what, if any, patterns in examiners' work, promotion and attrition vary systematically by race and/or gender.
 
 ## Team project
 Your team's goal is to perform the analysis of the agency's data as a consulting team would. Base on the analysis, you will write a short report (no longer than 10 pages including all figures table and references, if any). Your analysis will focus on one or more of the following questions:
 
 + What are the organizational and social factors associated with the length of patent application prosecution?
-+ What influences mobility, promotion and exit of patent examiners?
++ What influences promotion and exit of patent examiners?
 + What is the role of gender, race and ethnicity in the processes described in the questions above?
 
 Your report should offer convincing analysis, as well as projections and related recommendations.
@@ -85,11 +84,6 @@ app_data_sample %>%
 
 ### Examiners
 Additional data on patent examiners come from FOIA requests made with the agency by various researchers. The data components are:
-
-+ **examiner_aus.csv** contains data on Art Units associated with each examiner at each point in time
-```{r}
-examiner_aus %>% tbl_vars()
-```
 
 + **examiner_gs.csv** contains data on examiner GS pay grade changes
 ```{r}
