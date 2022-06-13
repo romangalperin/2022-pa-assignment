@@ -167,6 +167,10 @@ examiner_data <- app_data_sample %>%
     ),
     app_proc_days = interval(app_start_date, app_end_date) %/% days(1)) %>% 
   filter(app_proc_days>0 & app_proc_days < 3650) %>% # limit to 0-10 years
+  mutate(
+    iss_days = if_else(disposal_type == "ISS", app_proc_days, NA_real_),
+    abn_days = if_else(disposal_type == "ABN", app_proc_days, NA_real_)
+  ) %>% 
   group_by(examiner_id) %>% 
   summarise(
     app_count = n(),
@@ -174,7 +178,9 @@ examiner_data <- app_data_sample %>%
     gender = first(gender),
     race = first(race),
     tenure_days = max(tenure_days, na.rm = TRUE),
-    mean_app_proc_days = mean(app_proc_days, na.rm = TRUE)
+    mean_app_proc_days = mean(app_proc_days, na.rm = TRUE),
+    mean_iss_days = mean(iss_days, na.rm = TRUE),
+    mean_abn_days = mean(abn_days, na.rm = TRUE)
   )
 
 examiner_data

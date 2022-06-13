@@ -54,8 +54,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)
-    ## Ncells  4527302 241.8    8001240 427.4         NA  4547482 242.9
-    ## Vcells 49521401 377.9   95436694 728.2      32768 79837179 609.2
+    ## Ncells  4527306 241.8    8001228 427.4         NA  4547489 242.9
+    ## Vcells 49521469 377.9   95436782 728.2      32768 79837252 609.2
 
 ``` r
 # Examiners' race
@@ -98,8 +98,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)
-    ## Ncells  4942317 264.0    8001240 427.4         NA  8001240 427.4
-    ## Vcells 53317743 406.8   95436694 728.2      32768 95216444 726.5
+    ## Ncells  4942321 264.0    8001228 427.4         NA  8001228 427.4
+    ## Vcells 53317811 406.8   95436782 728.2      32768 95216504 726.5
 
 ``` r
 # Examiner's tenure
@@ -140,8 +140,8 @@ gc()
 ```
 
     ##            used  (Mb) gc trigger   (Mb) limit (Mb)  max used   (Mb)
-    ## Ncells  4957202 264.8   14374140  767.7         NA  14374140  767.7
-    ## Vcells 65698040 501.3  165205805 1260.5      32768 137314607 1047.7
+    ## Ncells  4957206 264.8   14374114  767.7         NA  14374114  767.7
+    ## Vcells 65698108 501.3  165205958 1260.5      32768 137314675 1047.7
 
 ## Adding paygrade data
 
@@ -260,6 +260,10 @@ examiner_data <- app_data_sample %>%
     ),
     app_proc_days = interval(app_start_date, app_end_date) %/% days(1)) %>% 
   filter(app_proc_days>0 & app_proc_days < 3650) %>% # limit to 0-10 years
+  mutate(
+    iss_days = if_else(disposal_type == "ISS", app_proc_days, NA_real_),
+    abn_days = if_else(disposal_type == "ABN", app_proc_days, NA_real_)
+  ) %>% 
   group_by(examiner_id) %>% 
   summarise(
     app_count = n(),
@@ -267,13 +271,15 @@ examiner_data <- app_data_sample %>%
     gender = first(gender),
     race = first(race),
     tenure_days = max(tenure_days, na.rm = TRUE),
-    mean_app_proc_days = mean(app_proc_days, na.rm = TRUE)
+    mean_app_proc_days = mean(app_proc_days, na.rm = TRUE),
+    mean_iss_days = mean(iss_days, na.rm = TRUE),
+    mean_abn_days = mean(abn_days, na.rm = TRUE)
   )
 
 examiner_data
 ```
 
-    ## # A tibble: 5,549 × 7
+    ## # A tibble: 5,549 × 9
     ##    examiner_id app_count    tc gender race  tenure_days mean_app_proc_days
     ##          <dbl>     <int> <dbl> <chr>  <chr>       <dbl>              <dbl>
     ##  1       59012        84  1700 male   white        4013              1295.
@@ -286,7 +292,8 @@ examiner_data
     ##  8       59056      1019  2100 male   Asian        6268              1077.
     ##  9       59074       166  2100 <NA>   white        6255              1579.
     ## 10       59081        48  2400 male   Asian        2220              1317.
-    ## # … with 5,539 more rows
+    ## # … with 5,539 more rows, and 2 more variables: mean_iss_days <dbl>,
+    ## #   mean_abn_days <dbl>
 
 Now, let’s join in the time in grade data.
 
@@ -301,7 +308,7 @@ examiner_data <- examiner_data %>%
 examiner_data
 ```
 
-    ## # A tibble: 5,549 × 8
+    ## # A tibble: 5,549 × 10
     ##    examiner_id app_count    tc gender race  tenure_days mean_app_proc_days
     ##          <dbl>     <int> <dbl> <chr>  <chr>       <dbl>              <dbl>
     ##  1       59012        84  1700 male   white        4013              1295.
@@ -314,7 +321,8 @@ examiner_data
     ##  8       59056      1019  2100 male   Asian        6268              1077.
     ##  9       59074       166  2100 <NA>   white        6255              1579.
     ## 10       59081        48  2400 male   Asian        2220              1317.
-    ## # … with 5,539 more rows, and 1 more variable: mean_days_in_grade <dbl>
+    ## # … with 5,539 more rows, and 3 more variables: mean_iss_days <dbl>,
+    ## #   mean_abn_days <dbl>, mean_days_in_grade <dbl>
 
 ## Descriptive statistics and regressions
 
